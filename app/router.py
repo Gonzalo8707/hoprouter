@@ -51,11 +51,17 @@ _PATTERNS = {
     ],
     Category.LOGIC: [
         r"\bpuzzle\b", r"\bif .* then\b.*\bwho\b", r"\ball of the following\b",
-        r"\bconstraint", r"\bdeduce\b", r"\bwho (is|owns|lives)\b",
+        r"\bconstraint", r"\bdeduce\b", r"\bwho (is|owns|lives|finished)\b",
+        r"\bfinished (first|last|second|third|\d\w{0,2})\b",
+        r"\b(1st|2nd|3rd|4th|first|second|third|fourth)\s+place\b",
+        r"\border(ed|ing)?\b.*\b(place|position|rank)\b",
     ],
     Category.MATH: [
         r"\bpercent", r"%", r"\bhow many\b", r"\bcalculate\b",
         r"\d+\s*[\+\-\*/]\s*\d+", r"\bsolve for\b", r"\baverage\b",
+        r"\bhow (fast|long|much)\b", r"\bspeed\b", r"\bkm/h\b", r"\bmph\b",
+        r"\d+\s*(km|kg|cm|mm|m|minutes?|hours?|liters?|dollars?)\b",
+        r"\$\d+", r"\bdiscount\b", r"\bnew price\b", r"\bincrease\b.*\bprice\b",
     ],
     Category.NER: [
         r"\bextract\b.*(entit|name|person|organi[sz]ation|location|date)",
@@ -72,21 +78,30 @@ _PATTERNS = {
     ],
     Category.FACTUAL: [
         r"\bwhat is\b", r"\bexplain\b", r"\bdefine\b", r"\bhow does\b",
-        r"\bwhy does\b", r"\bdescribe\b",
+        r"\bwhy does\b", r"\bdescribe\b", r"\bwhat causes\b",
     ],
 }
 
 # Which allowed Fireworks model to prefer per category, when routed REMOTE.
+#
+# NOTE: as of this hackathon's launch day, the Gemma models in
+# ALLOWED_MODELS (gemma-4-31b-it, gemma-4-26b-a4b-it, gemma-4-31b-it-nvfp4)
+# return 404 via the Fireworks serverless endpoint - they require explicit
+# on-demand deployment per the organizers, which is not something we can
+# depend on for the evaluation harness. We deliberately avoid them here to
+# not risk the accuracy gate; this forfeits the Gemma bonus prize but
+# protects the base score. Revisit if AMD/lablab.ai confirm Gemma is
+# reachable serverless before submission.
 MODEL_PREFERENCE = {
     Category.CODE_DEBUG: "kimi-k2p7-code",
     Category.CODE_GEN: "kimi-k2p7-code",
     Category.LOGIC: "minimax-m3",
     Category.MATH: "minimax-m3",
-    Category.NER: "gemma-4-26b-a4b-it",
-    Category.SUMMARY: "gemma-4-26b-a4b-it",
-    Category.SENTIMENT: "gemma-4-26b-a4b-it",
-    Category.FACTUAL: "gemma-4-31b-it",
-    Category.UNKNOWN: "gemma-4-31b-it",
+    Category.NER: "minimax-m3",
+    Category.SUMMARY: "minimax-m3",
+    Category.SENTIMENT: "minimax-m3",
+    Category.FACTUAL: "minimax-m3",
+    Category.UNKNOWN: "minimax-m3",
 }
 
 # Categories the local model is expected to handle reliably on its own,

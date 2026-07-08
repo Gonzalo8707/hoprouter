@@ -17,7 +17,7 @@ import time
 
 from router import route_task, Route, Category, MODEL_PREFERENCE
 from fireworks_client import FireworksClient, ConfigError
-from local_model import generate as local_generate
+from local_model import generate as local_generate, warmup as local_warmup
 from validators import passes_local_safety_check
 
 INPUT_PATH = "/input/tasks.json"
@@ -69,6 +69,11 @@ def solve_task(task: dict, fw_client) -> dict:
 
 def main():
     start = time.time()
+
+    # Load the local model into memory now, during startup, so this cost
+    # counts against the container's 60s readiness budget rather than
+    # against the first task's 30s per-request budget.
+    local_warmup()
 
     try:
         tasks = load_tasks(INPUT_PATH)

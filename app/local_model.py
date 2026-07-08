@@ -43,6 +43,13 @@ def _get_pipeline():
     return _pipeline
 
 
+def warmup():
+    """Force the pipeline to load now (called once at container startup),
+    so loading time is paid during the 60s readiness window instead of
+    during the first task's 30s response window."""
+    _get_pipeline()
+
+
 def _fallback_answer(prompt: str) -> str:
     # Minimal, safe fallback so we never return empty/malformed output.
     return "Unable to process with local model; please review manually."

@@ -38,6 +38,9 @@ EVAL_PATH = os.path.join(os.path.dirname(__file__), "eval_tasks.json")
 
 
 def check_expectations(task: dict, answer: str) -> bool:
+    if answer.startswith("[EVAL ERROR]") or answer.startswith("Error processing task"):
+        return False
+
     lowered = answer.lower()
 
     if task.get("expect_json"):
