@@ -1,0 +1,30 @@
+[
+  {"task_id": "s1", "category": "sentiment_classification", "prompt": "Classify the sentiment of this review and justify it: 'The battery life is terrible and it overheats constantly.'", "expect_contains": ["negative"]},
+  {"task_id": "s2", "category": "sentiment_classification", "prompt": "Classify the sentiment of this review and justify it: 'This exceeded all my expectations, I love it.'", "expect_contains": ["positive"]},
+  {"task_id": "s3", "category": "sentiment_classification", "prompt": "Classify the sentiment of this review and justify it: 'It arrived on time and does what it says.'", "expect_contains": ["neutral", "positive"]},
+  {"task_id": "s4", "category": "sentiment_classification", "prompt": "Classify the sentiment of this review and justify it: 'Mixed feelings: great screen but terrible battery.'", "expect_contains": ["mixed", "negative", "positive"]},
+
+  {"task_id": "n1", "category": "named_entity_recognition", "prompt": "Extract all named entities (person, organization, location, date) from this sentence as JSON: 'Maria Gonzalez met with representatives from Acme Corp in Santiago on March 3rd.'", "expect_json": true},
+  {"task_id": "n2", "category": "named_entity_recognition", "prompt": "Extract all named entities (person, organization, location, date) from this sentence as JSON: 'John Smith joined Google in Berlin last January.'", "expect_json": true},
+  {"task_id": "n3", "category": "named_entity_recognition", "prompt": "Extract all named entities (person, organization, location, date) from this sentence as JSON: 'The conference in Tokyo, organized by Sony, starts on July 10.'", "expect_json": true},
+
+  {"task_id": "f1", "category": "factual_knowledge", "prompt": "What is photosynthesis and how does it work?", "expect_min_words": 8},
+  {"task_id": "f2", "category": "factual_knowledge", "prompt": "Explain what a hash table is and why it is fast for lookups.", "expect_min_words": 8},
+  {"task_id": "f3", "category": "factual_knowledge", "prompt": "What causes seasons on Earth?", "expect_min_words": 8},
+
+  {"task_id": "m1", "category": "mathematical_reasoning", "prompt": "A store offers a 15% discount on a $80 item. What is the final price?", "expect_contains": ["68"]},
+  {"task_id": "m2", "category": "mathematical_reasoning", "prompt": "If a train travels 60 km in 45 minutes, what is its speed in km/h?", "expect_contains": ["80"]},
+  {"task_id": "m3", "category": "mathematical_reasoning", "prompt": "A shirt costs $40. After a 25% increase, what is the new price?", "expect_contains": ["50"]},
+
+  {"task_id": "sum1", "category": "text_summarisation", "prompt": "Summarise the following text in one sentence: The company reported record revenue growth this quarter, driven by strong demand in international markets, despite ongoing supply chain disruptions and rising input costs across its manufacturing division.", "expect_min_words": 5, "expect_max_words": 40},
+  {"task_id": "sum2", "category": "text_summarisation", "prompt": "Summarise the following text in one sentence: Researchers discovered a new species of frog in a remote rainforest region, notable for its unusual bright blue coloration and a mating call never recorded before in the genus.", "expect_min_words": 5, "expect_max_words": 40},
+
+  {"task_id": "d1", "category": "code_debugging", "prompt": "Find the bug in this code and provide the corrected version:\ndef add_items(items):\n    total = 0\n    for i in range(len(items) + 1):\n        total += items[i]\n    return total", "expect_contains": ["range(len(items))"]},
+  {"task_id": "d2", "category": "code_debugging", "prompt": "Find the bug in this code and provide the corrected version:\ndef is_even(n):\n    if n % 2 == 1:\n        return True\n    else:\n        return False", "expect_contains": ["% 2 == 0"]},
+
+  {"task_id": "l1", "category": "logical_reasoning", "prompt": "Three friends, Ana, Beto and Caro, each own a different pet: a cat, a dog and a bird. Ana does not own the cat. Beto owns the dog. Who owns the bird?", "expect_contains": ["ana"]},
+  {"task_id": "l2", "category": "logical_reasoning", "prompt": "Four people, Sam, Lee, Kim and Max, finished a race in 1st, 2nd, 3rd and 4th place. Sam did not finish last. Lee finished right after Sam. Kim finished first. Who finished last?", "expect_contains": ["max"]},
+
+  {"task_id": "c1", "category": "code_generation", "prompt": "Write a Python function that takes a list of integers and returns the second largest unique value.", "expect_contains": ["def "]},
+  {"task_id": "c2", "category": "code_generation", "prompt": "Write a Python function that checks if a string is a palindrome, ignoring case and spaces.", "expect_contains": ["def "]}
+]

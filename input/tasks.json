@@ -1,0 +1,10 @@
+[
+  {"task_id": "t1_factual", "prompt": "What is photosynthesis and how does it work?"},
+  {"task_id": "t2_math", "prompt": "A store offers a 15% discount on a $80 item. What is the final price?"},
+  {"task_id": "t3_sentiment", "prompt": "Classify the sentiment of this review and justify it: 'The battery life is terrible and it overheats constantly.'"},
+  {"task_id": "t4_summary", "prompt": "Summarise the following text in one sentence: The company reported record revenue growth this quarter, driven by strong demand in international markets, despite ongoing supply chain disruptions and rising input costs across its manufacturing division."},
+  {"task_id": "t5_ner", "prompt": "Extract all named entities (person, organization, location, date) from this sentence as JSON: 'Maria Gonzalez met with representatives from Acme Corp in Santiago on March 3rd.'"},
+  {"task_id": "t6_debug", "prompt": "Find the bug in this code and provide the corrected version:\ndef add_items(items):\n    total = 0\n    for i in range(len(items) + 1):\n        total += items[i]\n    return total"},
+  {"task_id": "t7_logic", "prompt": "Three friends, Ana, Beto and Caro, each own a different pet: a cat, a dog and a bird. Ana does not own the cat. Beto owns the dog. Who owns the bird?"},
+  {"task_id": "t8_codegen", "prompt": "Write a Python function that takes a list of integers and returns the second largest unique value."}
+]
