@@ -48,7 +48,13 @@ def _fallback_answer(prompt: str) -> str:
     return "Unable to process with local model; please review manually."
 
 
-def generate(prompt: str, max_new_tokens: int = 256) -> str:
+def generate(prompt: str, max_new_tokens: int = 120, max_time_s: float = 22.0) -> str:
+    """
+    Generate a local answer, bounded both by token count AND wall-clock time
+    (max_time is enforced by transformers' generate() itself). The 22s cap
+    leaves a safety margin under the harness's 30s-per-request hard limit,
+    accounting for tokenization/pipeline overhead on top of raw generation.
+    """
     pipe = _get_pipeline()
     if pipe is None:
         return _fallback_answer(prompt)
@@ -59,14 +65,22 @@ def generate(prompt: str, max_new_tokens: int = 256) -> str:
             "content": (
                 "You are a precise, concise assistant. Always answer in "
                 "English, regardless of the input language. Follow the "
-                "requested output format exactly."
+                "requested output format exactly. Keep answers brief."
             ),
         },
         {"role": "user", "content": prompt},
     ]
 
     try:
-        out = pipe(messages, max_new_tokens=max_new_tokens, do_sample=False)
+        out = pipe(
+            messages,
+            max_new_tokens=max_new_tokens,
+            max_time=max_time_s,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+            top_k=None,
+        )
         generated = out[0]["generated_text"]
         # pipeline returns the full conversation; take the last assistant turn
         if isinstance(generated, list):

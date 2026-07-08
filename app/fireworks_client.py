@@ -32,12 +32,20 @@ class FireworksClient:
             raise ConfigError("ALLOWED_MODELS is not set in the environment")
 
     def _resolve_model(self, requested_model: str) -> str:
-        if requested_model in self.allowed_models:
-            return requested_model
-        # Fallback: if our preferred model isn't in the allowed list for some
-        # reason (e.g. changed on launch day), use the first allowed model
-        # rather than failing the whole task.
-        return self.allowed_models[0]
+        model = requested_model
+        if model not in self.allowed_models:
+            # Fallback: if our preferred model isn't in the allowed list for
+            # some reason (e.g. changed on launch day), use the first
+            # allowed model rather than failing the whole task.
+            model = self.allowed_models[0]
+
+        # Fireworks model IDs are full paths like
+        # "accounts/fireworks/models/<slug>". The hackathon announcement
+        # published bare slugs (e.g. "minimax-m3"), which return 404 when
+        # called directly. Auto-prefix if it looks like a bare slug.
+        if "/" not in model:
+            model = f"accounts/fireworks/models/{model}"
+        return model
 
     def chat_completion(self, model: str, prompt: str, max_tokens: int = 512,
                          temperature: float = 0.2) -> str:

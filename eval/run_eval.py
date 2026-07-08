@@ -91,19 +91,22 @@ def main():
         t0 = time.time()
         used_route = route.value
 
-        if route == Route.LOCAL:
-            answer = local_generate(prompt)
-            total_calls_local += 1
-            if not passes_local_safety_check(category, answer):
-                escalations += 1
-                used_route = "remote (escalated)"
-                answer, usage = fw_client.chat_completion_with_usage(model=model or "gemma-4-31b-it", prompt=prompt)
+        try:
+            if route == Route.LOCAL:
+                answer = local_generate(prompt)
+                total_calls_local += 1
+                if not passes_local_safety_check(category, answer):
+                    escalations += 1
+                    used_route = "remote (escalated)"
+                    answer, usage = fw_client.chat_completion_with_usage(model=model or "gemma-4-31b-it", prompt=prompt)
+                    total_remote_tokens += usage.get("total_tokens", 0)
+                    total_calls_remote += 1
+            else:
+                answer, usage = fw_client.chat_completion_with_usage(model=model, prompt=prompt)
                 total_remote_tokens += usage.get("total_tokens", 0)
                 total_calls_remote += 1
-        else:
-            answer, usage = fw_client.chat_completion_with_usage(model=model, prompt=prompt)
-            total_remote_tokens += usage.get("total_tokens", 0)
-            total_calls_remote += 1
+        except Exception as e:
+            answer = f"[EVAL ERROR] {e}"
 
         elapsed = time.time() - t0
         ok = check_expectations(task, answer)
