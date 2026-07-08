@@ -101,7 +101,7 @@ def main():
                 if not passes_local_safety_check(category, answer):
                     escalations += 1
                     used_route = "remote (escalated)"
-                    answer, usage = fw_client.chat_completion_with_usage(model=model or "gemma-4-31b-it", prompt=prompt)
+                    answer, usage = fw_client.chat_completion_with_usage(model=model or "minimax-m3", prompt=prompt)
                     total_remote_tokens += usage.get("total_tokens", 0)
                     total_calls_remote += 1
             else:
@@ -109,7 +109,14 @@ def main():
                 total_remote_tokens += usage.get("total_tokens", 0)
                 total_calls_remote += 1
         except Exception as e:
-            answer = f"[EVAL ERROR] {e}"
+            # Mirror main.py's safety net: a remote failure falls back to
+            # local generation rather than being a hard failure, so the eval
+            # reflects what the real submission would actually output.
+            used_route += " -> local fallback (remote failed)"
+            try:
+                answer = local_generate(prompt)
+            except Exception:
+                answer = f"[EVAL ERROR] {e}"
 
         elapsed = time.time() - t0
         ok = check_expectations(task, answer)

@@ -47,8 +47,7 @@ class FireworksClient:
             model = f"accounts/fireworks/models/{model}"
         return model
 
-    def chat_completion(self, model: str, prompt: str, max_tokens: int = 512,
-                         temperature: float = 0.2) -> str:
+    def _post_chat(self, model: str, prompt: str, max_tokens: int, temperature: float):
         model_id = self._resolve_model(model)
         url = f"{self.base_url.rstrip('/')}/chat/completions"
         headers = {
@@ -71,11 +70,43 @@ class FireworksClient:
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
-
         resp = requests.post(url, headers=headers, json=payload, timeout=25)
         resp.raise_for_status()
-        data = resp.json()
-        return data["choices"][0]["message"]["content"].strip()
+        return resp.json()
+
+    @staticmethod
+    def _extract_content(data: dict) -> str:
+        """Defensively extract the answer text. Some models/response shapes
+        put content in unexpected places (missing 'content', structured
+        content blocks, or a 'reasoning_content' field instead) - we never
+        want a KeyError to crash a task over this."""
+        try:
+            message = data["choices"][0].get("message", {})
+        except (KeyError, IndexError, TypeError):
+            return ""
+
+        content = message.get("content")
+
+        if isinstance(content, list):
+            # Structured content blocks: join any text parts.
+            parts = [
+                block.get("text", "")
+                for block in content
+                if isinstance(block, dict)
+            ]
+            content = " ".join(p for p in parts if p)
+
+        if not content:
+            # Fall back to reasoning_content if the model used that field
+            # instead (seen on some reasoning-tuned models).
+            content = message.get("reasoning_content") or ""
+
+        return str(content).strip()
+
+    def chat_completion(self, model: str, prompt: str, max_tokens: int = 512,
+                         temperature: float = 0.2) -> str:
+        data = self._post_chat(model, prompt, max_tokens, temperature)
+        return self._extract_content(data)
 
     def chat_completion_with_usage(self, model: str, prompt: str, max_tokens: int = 512,
                                     temperature: float = 0.2):
@@ -83,31 +114,7 @@ class FireworksClient:
         reported by the API (prompt_tokens, completion_tokens, total_tokens).
         Useful for local evaluation to track real cost per call; not needed
         by the harness itself (it measures tokens via its own proxy)."""
-        model_id = self._resolve_model(model)
-        url = f"{self.base_url.rstrip('/')}/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "model": model_id,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a precise, concise assistant. Always answer "
-                        "in English, regardless of the input language. "
-                        "Follow the requested output format exactly."
-                    ),
-                },
-                {"role": "user", "content": prompt},
-            ],
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-        }
-        resp = requests.post(url, headers=headers, json=payload, timeout=25)
-        resp.raise_for_status()
-        data = resp.json()
-        text = data["choices"][0]["message"]["content"].strip()
+        data = self._post_chat(model, prompt, max_tokens, temperature)
+        text = self._extract_content(data)
         usage = data.get("usage", {})
         return text, usage
