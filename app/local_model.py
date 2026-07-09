@@ -72,7 +72,12 @@ def generate(prompt: str, max_new_tokens: int = 120, max_time_s: float = 22.0) -
             "content": (
                 "You are a precise, concise assistant. Always answer in "
                 "English, regardless of the input language. Follow the "
-                "requested output format exactly. Keep answers brief."
+                "requested output format exactly. Be concise: for open-ended "
+                "questions, answer in at most 3 sentences. For entity "
+                "extraction tasks, check carefully for ALL requested entity "
+                "types (e.g. person, organization, location, AND date) "
+                "before finishing - do not omit a category just because "
+                "it's the last one you'd mention."
             ),
         },
         {"role": "user", "content": prompt},

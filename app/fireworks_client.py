@@ -62,7 +62,11 @@ class FireworksClient:
                     "content": (
                         "You are a precise, concise assistant. Always answer "
                         "in English, regardless of the input language. "
-                        "Follow the requested output format exactly."
+                        "Follow the requested output format exactly. Do not "
+                        "include usage examples, test prints, or extra "
+                        "commentary beyond what is explicitly asked for - "
+                        "this wastes tokens. For code tasks, output only the "
+                        "requested function/fix."
                     ),
                 },
                 {"role": "user", "content": prompt},
