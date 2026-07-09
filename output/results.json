@@ -1,0 +1,34 @@
+[
+  {
+    "task_id": "t1_factual",
+    "answer": "Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose molecules. It occurs primarily in the chloroplasts of plant cells where chlorophyll absorbs sunlight. The reaction can be represented as:\n\n6CO2 + 6H2O + light energy → C6H12O6 + 6O2\n\nDuring this process, water molecules are split into oxygen gas and hydrogen ions, while carbon dioxide molecules are combined with six molecules of glucose to form glucose and oxygen. This oxygen is released into the atmosphere as a byproduct."
+  },
+  {
+    "task_id": "t2_math",
+    "answer": "Final price: **$68**\n\nCalculation: $80 × 0.15 = $12 discount; $80 − $12 = $68"
+  },
+  {
+    "task_id": "t3_sentiment",
+    "answer": "The sentiment of this review is negative. The reviewer expresses dissatisfaction with the product's performance, specifically mentioning that its battery life is poor and that it overheats frequently. This indicates a strong negative sentiment towards the product."
+  },
+  {
+    "task_id": "t4_summary",
+    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising manufacturing costs posed ongoing challenges."
+  },
+  {
+    "task_id": "t5_ner",
+    "answer": "```json\n{\n  \"persons\": [\"Maria Gonzalez\"],\n  \"organizations\": [\"Acme Corp\"],\n  \"locations\": [\"Santiago\"],\n  \"dates\": [\"March 3rd\"]\n}\n```"
+  },
+  {
+    "task_id": "t6_debug",
+    "answer": "Bug: `range(len(items) + 1)` iterates one index past the end of the list, causing an `IndexError`.\n\nCorrected version:\n\n```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```"
+  },
+  {
+    "task_id": "t7_logic",
+    "answer": "**Ana owns the bird.**\n\nReasoning:\n- Beto owns the dog (given).\n- Ana does not own the cat, and the dog is already taken by Beto, so Ana must own the bird.\n- By elimination, Caro owns the cat."
+  },
+  {
+    "task_id": "t8_codegen",
+    "answer": "```python\ndef second_largest_unique(nums):\n    largest = second = None\n    for n in set(nums):\n        if largest is None or n > largest:\n            second = largest\n            largest = n\n        elif second is None or n > second:\n            second = n\n    return second\n```"
+  }
+]

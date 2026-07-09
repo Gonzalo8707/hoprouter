@@ -82,16 +82,7 @@ _PATTERNS = {
     ],
 }
 
-# Which allowed Fireworks model to prefer per category, when routed REMOTE.
-#
-# NOTE: as of this hackathon's launch day, the Gemma models in
-# ALLOWED_MODELS (gemma-4-31b-it, gemma-4-26b-a4b-it, gemma-4-31b-it-nvfp4)
-# return 404 via the Fireworks serverless endpoint - they require explicit
-# on-demand deployment per the organizers, which is not something we can
-# depend on for the evaluation harness. We deliberately avoid them here to
-# not risk the accuracy gate; this forfeits the Gemma bonus prize but
-# protects the base score. Revisit if AMD/lablab.ai confirm Gemma is
-# reachable serverless before submission.
+
 MODEL_PREFERENCE = {
     Category.CODE_DEBUG: "kimi-k2p7-code",
     Category.CODE_GEN: "kimi-k2p7-code",
