@@ -63,15 +63,11 @@ class FireworksClient:
                 {
                     "role": "system",
                     "content": (
-                        "You are a precise, concise assistant. Always answer "
-                        "in English, regardless of the input language. "
-                        "Follow the requested output format exactly. Do not "
-                        "include usage examples, test prints, explanations, "
-                        "or extra commentary beyond what is explicitly asked "
-                        "for - this wastes tokens. For code tasks, output "
-                        "only the requested function/fix, no prose. For "
-                        "math, give the final numeric answer with at most "
-                        "one short line of working - no restated question."
+                        "Answer in English. Be extremely concise: no "
+                        "examples, no restated question, no extra "
+                        "commentary. Code tasks: output only the "
+                        "function/fix. Math: final answer only, minimal "
+                        "working shown."
                     ),
                 },
                 {"role": "user", "content": prompt},

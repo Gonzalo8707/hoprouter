@@ -5,7 +5,7 @@
   },
   {
     "task_id": "t2_math",
-    "answer": "The final price is **$68**.\n\n- Discount: 15% of $80 = $12\n- Final price: $80 − $12 = $68"
+    "answer": "$68"
   },
   {
     "task_id": "t3_sentiment",
@@ -13,7 +13,7 @@
   },
   {
     "task_id": "t4_summary",
-    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising input costs challenged its manufacturing operations."
+    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising manufacturing input costs persisted."
   },
   {
     "task_id": "t5_ner",
@@ -21,14 +21,14 @@
   },
   {
     "task_id": "t6_debug",
-    "answer": "Bug: `range(len(items) + 1)` goes one index past the end of the list, causing an `IndexError`.\n\nCorrected version:\n\n```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```\n\nMore Pythonic alternative:\n\n```python\ndef add_items(items):\n    return sum(items)\n```"
+    "answer": "```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```"
   },
   {
     "task_id": "t7_logic",
-    "answer": "**Ana** owns the bird.\n\nReasoning:\n- Beto owns the dog (given).\n- The remaining pets — cat and bird — belong to Ana and Caro.\n- Ana does not own the cat, so Ana must own the bird.\n- Consequently, Caro owns the cat."
+    "answer": "Ana owns the bird."
   },
   {
     "task_id": "t8_codegen",
-    "answer": "```python\ndef second_largest_unique(values):\n    unique = sorted(set(values))\n    if len(unique) < 2:\n        raise ValueError(\"List must contain at least two unique values\")\n    return unique[-2]\n```"
+    "answer": "```python\ndef second_largest_unique(nums):\n    unique = set(nums)\n    if len(unique) < 2:\n        return None\n    return sorted(unique)[-2]\n```"
   }
 ]
