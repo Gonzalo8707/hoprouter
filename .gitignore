@@ -1,0 +1,16 @@
+# Secrets - never commit real credentials
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Local runtime folders (test input/output, not part of the submission)
+output/
+
+# Editor / OS junk
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
