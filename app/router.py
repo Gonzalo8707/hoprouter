@@ -106,9 +106,17 @@ MODEL_PREFERENCE = {
 
 # Categories the local model is expected to handle reliably on its own,
 # without falling below the accuracy threshold.
+# Categories the local model is expected to handle reliably on its own,
+# without falling below the accuracy threshold.
+#
+# NOTE: NER was tested locally and dropped - even with prompt tuning, the
+# small local model (Qwen2.5-0.5B) inconsistently omits requested entity
+# types (e.g. missing dates/locations while still producing syntactically
+# valid JSON, which slips past the safety-net's JSON-validity check). Given
+# the accuracy gate is all-or-nothing, we accept the token cost of routing
+# NER remotely rather than risk incomplete extractions.
 LOCAL_CAPABLE = {
     Category.SENTIMENT,
-    Category.NER,
     Category.FACTUAL,
 }
 
