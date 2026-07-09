@@ -22,12 +22,15 @@ class FireworksClient:
         self.api_key = os.environ.get("FIREWORKS_API_KEY")
         self.base_url = os.environ.get("FIREWORKS_BASE_URL")
         allowed = os.environ.get("ALLOWED_MODELS", "")
-        self.allowed_models = [m.strip() for m in allowed.split(",") if m.strip()]
+        self.allowed_models = [m.strip()
+                               for m in allowed.split(",") if m.strip()]
 
         if not self.api_key:
-            raise ConfigError("FIREWORKS_API_KEY is not set in the environment")
+            raise ConfigError(
+                "FIREWORKS_API_KEY is not set in the environment")
         if not self.base_url:
-            raise ConfigError("FIREWORKS_BASE_URL is not set in the environment")
+            raise ConfigError(
+                "FIREWORKS_BASE_URL is not set in the environment")
         if not self.allowed_models:
             raise ConfigError("ALLOWED_MODELS is not set in the environment")
 
@@ -63,10 +66,12 @@ class FireworksClient:
                         "You are a precise, concise assistant. Always answer "
                         "in English, regardless of the input language. "
                         "Follow the requested output format exactly. Do not "
-                        "include usage examples, test prints, or extra "
-                        "commentary beyond what is explicitly asked for - "
-                        "this wastes tokens. For code tasks, output only the "
-                        "requested function/fix."
+                        "include usage examples, test prints, explanations, "
+                        "or extra commentary beyond what is explicitly asked "
+                        "for - this wastes tokens. For code tasks, output "
+                        "only the requested function/fix, no prose. For "
+                        "math, give the final numeric answer with at most "
+                        "one short line of working - no restated question."
                     ),
                 },
                 {"role": "user", "content": prompt},
@@ -107,13 +112,13 @@ class FireworksClient:
 
         return str(content).strip()
 
-    def chat_completion(self, model: str, prompt: str, max_tokens: int = 512,
-                         temperature: float = 0.2) -> str:
+    def chat_completion(self, model: str, prompt: str, max_tokens: int = 280,
+                        temperature: float = 0.2) -> str:
         data = self._post_chat(model, prompt, max_tokens, temperature)
         return self._extract_content(data)
 
-    def chat_completion_with_usage(self, model: str, prompt: str, max_tokens: int = 512,
-                                    temperature: float = 0.2):
+    def chat_completion_with_usage(self, model: str, prompt: str, max_tokens: int = 280,
+                                   temperature: float = 0.2):
         """Same as chat_completion, but also returns the token usage dict
         reported by the API (prompt_tokens, completion_tokens, total_tokens).
         Useful for local evaluation to track real cost per call; not needed

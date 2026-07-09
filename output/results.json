@@ -5,7 +5,7 @@
   },
   {
     "task_id": "t2_math",
-    "answer": "Final price: **$68**\n\nCalculation: $80 × 0.15 = $12 discount; $80 − $12 = $68"
+    "answer": "The final price is **$68**.\n\n- Discount: 15% of $80 = $12\n- Final price: $80 − $12 = $68"
   },
   {
     "task_id": "t3_sentiment",
@@ -13,22 +13,22 @@
   },
   {
     "task_id": "t4_summary",
-    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising manufacturing costs posed ongoing challenges."
+    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising input costs challenged its manufacturing operations."
   },
   {
     "task_id": "t5_ner",
-    "answer": "```json\n{\n  \"persons\": [\"Maria Gonzalez\"],\n  \"organizations\": [\"Acme Corp\"],\n  \"locations\": [\"Santiago\"],\n  \"dates\": [\"March 3rd\"]\n}\n```"
+    "answer": "```json\n{\n  \"person\": [\"Maria Gonzalez\"],\n  \"organization\": [\"Acme Corp\"],\n  \"location\": [\"Santiago\"],\n  \"date\": [\"March 3rd\"]\n}\n```"
   },
   {
     "task_id": "t6_debug",
-    "answer": "Bug: `range(len(items) + 1)` iterates one index past the end of the list, causing an `IndexError`.\n\nCorrected version:\n\n```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```"
+    "answer": "Bug: `range(len(items) + 1)` goes one index past the end of the list, causing an `IndexError`.\n\nCorrected version:\n\n```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```\n\nMore Pythonic alternative:\n\n```python\ndef add_items(items):\n    return sum(items)\n```"
   },
   {
     "task_id": "t7_logic",
-    "answer": "**Ana owns the bird.**\n\nReasoning:\n- Beto owns the dog (given).\n- Ana does not own the cat, and the dog is already taken by Beto, so Ana must own the bird.\n- By elimination, Caro owns the cat."
+    "answer": "**Ana** owns the bird.\n\nReasoning:\n- Beto owns the dog (given).\n- The remaining pets — cat and bird — belong to Ana and Caro.\n- Ana does not own the cat, so Ana must own the bird.\n- Consequently, Caro owns the cat."
   },
   {
     "task_id": "t8_codegen",
-    "answer": "```python\ndef second_largest_unique(nums):\n    largest = second = None\n    for n in set(nums):\n        if largest is None or n > largest:\n            second = largest\n            largest = n\n        elif second is None or n > second:\n            second = n\n    return second\n```"
+    "answer": "```python\ndef second_largest_unique(values):\n    unique = sorted(set(values))\n    if len(unique) < 2:\n        raise ValueError(\"List must contain at least two unique values\")\n    return unique[-2]\n```"
   }
 ]
