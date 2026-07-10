@@ -101,11 +101,12 @@ def main():
                 if not passes_local_safety_check(category, answer):
                     escalations += 1
                     used_route = "remote (escalated)"
-                    answer, usage = fw_client.chat_completion_with_usage(model=model or "minimax-m3", prompt=prompt)
+                    answer, usage = fw_client.chat_completion_with_usage(
+                        model=model or "minimax-m3", prompt=prompt, category=category)
                     total_remote_tokens += usage.get("total_tokens", 0)
                     total_calls_remote += 1
             else:
-                answer, usage = fw_client.chat_completion_with_usage(model=model, prompt=prompt)
+                answer, usage = fw_client.chat_completion_with_usage(model=model, prompt=prompt, category=category)
                 total_remote_tokens += usage.get("total_tokens", 0)
                 total_calls_remote += 1
         except Exception as e:

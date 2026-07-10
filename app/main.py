@@ -22,7 +22,6 @@ from validators import passes_local_safety_check
 
 INPUT_PATH = "/input/tasks.json"
 OUTPUT_PATH = "/output/results.json"
-PER_REQUEST_TIMEOUT_S = 28  # stay safely under the 30s hard limit
 
 
 def load_tasks(path: str):
@@ -53,9 +52,9 @@ def solve_task(task: dict, fw_client) -> dict:
             # risking the whole task's score to save a few tokens.
             if fw_client is not None and not passes_local_safety_check(category, answer):
                 escalation_model = MODEL_PREFERENCE.get(category, MODEL_PREFERENCE[Category.UNKNOWN])
-                answer = fw_client.chat_completion(model=escalation_model, prompt=prompt)
+                answer = fw_client.chat_completion(model=escalation_model, prompt=prompt, category=category)
         else:
-            answer = fw_client.chat_completion(model=model, prompt=prompt)
+            answer = fw_client.chat_completion(model=model, prompt=prompt, category=category)
     except Exception as e:
         # Never let a single task crash the whole submission.
         # Fall back to local generation so we still emit a valid answer.

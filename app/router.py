@@ -44,10 +44,13 @@ _PATTERNS = {
     Category.CODE_DEBUG: [
         r"\bbug\b", r"\bdebug", r"\bfix (the|this) code\b", r"\berror\b.*code",
         r"traceback", r"stack trace", r"why (does|is) this code",
+        r"\bcorrect(ed)? version\b", r"\bwhat('s| is) wrong with\b", r"\bfix (it|this)\b",
+        r"\bfind the (bug|issue|error)\b",
     ],
     Category.CODE_GEN: [
         r"\bwrite a function\b", r"\bimplement\b", r"\bwrite code\b",
         r"\bwrite a program\b", r"def \w+\(", r"\bfunction that\b",
+        r"\bcreate a function\b", r"\bwrite a (python|javascript|java)\b",
     ],
     Category.LOGIC: [
         r"\bpuzzle\b", r"\bif .* then\b.*\bwho\b", r"\ball of the following\b",
@@ -55,6 +58,7 @@ _PATTERNS = {
         r"\bfinished (first|last|second|third|\d\w{0,2})\b",
         r"\b(1st|2nd|3rd|4th|first|second|third|fourth)\s+place\b",
         r"\border(ed|ing)?\b.*\b(place|position|rank)\b",
+        r"\bmust be true\b", r"\bwho is (the )?(oldest|youngest|tallest|shortest)\b",
     ],
     Category.MATH: [
         r"\bpercent", r"%", r"\bhow many\b", r"\bcalculate\b",
@@ -62,19 +66,22 @@ _PATTERNS = {
         r"\bhow (fast|long|much)\b", r"\bspeed\b", r"\bkm/h\b", r"\bmph\b",
         r"\d+\s*(km|kg|cm|mm|m|minutes?|hours?|liters?|dollars?)\b",
         r"\$\d+", r"\bdiscount\b", r"\bnew price\b", r"\bincrease\b.*\bprice\b",
+        r"\btotal cost\b",
     ],
     Category.NER: [
         r"\bextract\b.*(entit|name|person|organi[sz]ation|location|date)",
         r"\bidentify all\b.*(people|organizations|locations|dates)",
-        r"\bner\b",
+        r"\bner\b", r"\bnamed entit",
+        r"\blist all\b.*(people|person|organi[sz]ations?|locations?|dates?|entit)",
+        r"\b(people|persons|organi[sz]ations?|locations?|dates?)\b.*\bmentioned\b",
     ],
     Category.SUMMARY: [
-        r"\bsummari[sz]e\b", r"\bcondense\b", r"\bin one sentence\b",
-        r"\btl;?dr\b", r"\bshorten\b",
+        r"\bsummari[sz]e\b", r"\bsummary\b", r"\bcondense\b", r"\bin one sentence\b",
+        r"\btl;?dr\b", r"\bshorten\b", r"\bkey points\b", r"\bmain idea\b",
     ],
     Category.SENTIMENT: [
         r"\bsentiment\b", r"\bpositive or negative\b", r"\bclassify.*(review|feedback|comment)",
-        r"\bhow does .* feel\b",
+        r"\bhow does .* feel\b", r"\btone of\b", r"\battitude\b",
     ],
     Category.FACTUAL: [
         r"\bwhat is\b", r"\bexplain\b", r"\bdefine\b", r"\bhow does\b",
