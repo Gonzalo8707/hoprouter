@@ -1,34 +1,34 @@
 [
   {
     "task_id": "t1_factual",
-    "answer": "Photosynthesis is the process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose molecules. It occurs primarily in the chloroplasts of plant cells where chlorophyll absorbs sunlight. The reaction can be represented as:\n\n6CO2 + 6H2O + light energy → C6H12O6 + 6O2\n\nDuring this process, water molecules are split into oxygen gas and hydrogen ions, while carbon dioxide molecules are combined with six molecules of glucose to form glucose and oxygen. This oxygen is released into the atmosphere as a byproduct."
+    "answer": "Photosynthesis is the biological process by which green plants, algae, and some bacteria convert light energy, usually from the sun, into chemical energy stored in glucose molecules. It works by using chlorophyll in the chloroplasts to absorb sunlight, which drives a reaction that combines carbon dioxide from the air and water from the soil to produce glucose and release oxygen as a byproduct. The overall equation is: 6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂. This process occurs in two main stages: the light-dependent reactions, which capture energy and split water, and the Calvin cycle (light-independent reactions), which uses that energy to build sugar from carbon dioxide."
   },
   {
     "task_id": "t2_math",
-    "answer": "$68"
+    "answer": "To find the final price after a 15% discount on an $80 item:\n\n**Step 1:** Calculate the discount amount.\n- Discount = 15% × $80 = 0.15 × $80 = $12\n\n**Step 2:** Subtract the discount from the original price.\n- Final price = $80 − $12 = $68\n\nAnswer: $68"
   },
   {
     "task_id": "t3_sentiment",
-    "answer": "The sentiment of this review is negative. The reviewer expresses dissatisfaction with the product's performance, specifically mentioning that its battery life is poor and that it overheats frequently. This indicates a strong negative sentiment towards the product."
+    "answer": "**Sentiment: Negative**\n\nThe review expresses clear dissatisfaction with two key product features—battery life (\"terrible\") and overheating (\"constantly\")—using strongly negative language with no redeeming or balancing positive remarks."
   },
   {
     "task_id": "t4_summary",
-    "answer": "Record revenue growth from strong international demand offset supply chain disruptions and rising input costs this quarter."
+    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising input costs continued to challenge its manufacturing operations."
   },
   {
     "task_id": "t5_ner",
-    "answer": "```json\n{\n  \"entities\": [\n    {\"type\": \"person\", \"text\": \"Maria Gonzalez\"},\n    {\"type\": \"organization\", \"text\": \"Acme Corp\"},\n    {\"type\": \"location\", \"text\": \"Santiago\"},\n    {\"type\": \"date\", \"text\": \"March 3rd\"}\n  ]\n}\n```"
+    "answer": "{\"person\": [\"Maria Gonzalez\"], \"organization\": [\"Acme Corp\"], \"location\": [\"Santiago\"], \"date\": [\"March 3rd\"]}"
   },
   {
     "task_id": "t6_debug",
-    "answer": "```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```"
+    "answer": "The bug is an off-by-one error: `range(len(items) + 1)` causes an `IndexError` by accessing an index beyond the last item.\n\n```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```"
   },
   {
     "task_id": "t7_logic",
-    "answer": "Ana"
+    "answer": "Let's work through the clues step by step:\n\n1. **Beto owns the dog.** ✓\n2. The remaining pets (cat and bird) must belong to Ana and Caro.\n3. **Ana does not own the cat**, so Ana must own the bird.\n4. Therefore, Caro owns the cat.\n\nAnswer: Ana owns the bird."
   },
   {
     "task_id": "t8_codegen",
-    "answer": "```python\ndef second_largest_unique(nums):\n    unique = list(set(nums))\n    if len(unique) < 2:\n        return None\n    unique.sort(reverse=True)\n    return unique[1]\n```"
+    "answer": "```python\ndef second_largest_unique(nums):\n    unique = set(nums)\n    if len(unique) < 2:\n        return None\n    return sorted(unique)[-2]\n```"
   }
 ]
