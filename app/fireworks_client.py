@@ -63,11 +63,12 @@ class FireworksClient:
                 {
                     "role": "system",
                     "content": (
-                        "Answer in English. Be extremely concise: no "
-                        "examples, no restated question, no extra "
-                        "commentary. Code tasks: output only the "
-                        "function/fix. Math: final answer only, minimal "
-                        "working shown."
+                        "You are a precise assistant. Answer in English. "
+                        "Be concise but make sure your answer is COMPLETE - "
+                        "do not cut off mid-sentence or mid-structure. Code "
+                        "tasks: output the full function/fix. Math: show "
+                        "the final answer clearly. Never sacrifice "
+                        "correctness or completeness for brevity."
                     ),
                 },
                 {"role": "user", "content": prompt},
@@ -108,12 +109,12 @@ class FireworksClient:
 
         return str(content).strip()
 
-    def chat_completion(self, model: str, prompt: str, max_tokens: int = 280,
+    def chat_completion(self, model: str, prompt: str, max_tokens: int = 450,
                         temperature: float = 0.2) -> str:
         data = self._post_chat(model, prompt, max_tokens, temperature)
         return self._extract_content(data)
 
-    def chat_completion_with_usage(self, model: str, prompt: str, max_tokens: int = 280,
+    def chat_completion_with_usage(self, model: str, prompt: str, max_tokens: int = 450,
                                    temperature: float = 0.2):
         """Same as chat_completion, but also returns the token usage dict
         reported by the API (prompt_tokens, completion_tokens, total_tokens).

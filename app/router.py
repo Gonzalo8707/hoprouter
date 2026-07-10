@@ -106,10 +106,7 @@ MODEL_PREFERENCE = {
 # valid JSON, which slips past the safety-net's JSON-validity check). Given
 # the accuracy gate is all-or-nothing, we accept the token cost of routing
 # NER remotely rather than risk incomplete extractions.
-LOCAL_CAPABLE = {
-    Category.SENTIMENT,
-    Category.FACTUAL,
-}
+LOCAL_CAPABLE = set()
 
 
 def classify(prompt: str) -> Category:

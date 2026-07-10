@@ -13,11 +13,11 @@
   },
   {
     "task_id": "t4_summary",
-    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising manufacturing input costs persisted."
+    "answer": "Record revenue growth from strong international demand offset supply chain disruptions and rising input costs this quarter."
   },
   {
     "task_id": "t5_ner",
-    "answer": "```json\n{\n  \"person\": [\"Maria Gonzalez\"],\n  \"organization\": [\"Acme Corp\"],\n  \"location\": [\"Santiago\"],\n  \"date\": [\"March 3rd\"]\n}\n```"
+    "answer": "```json\n{\n  \"entities\": [\n    {\"type\": \"person\", \"text\": \"Maria Gonzalez\"},\n    {\"type\": \"organization\", \"text\": \"Acme Corp\"},\n    {\"type\": \"location\", \"text\": \"Santiago\"},\n    {\"type\": \"date\", \"text\": \"March 3rd\"}\n  ]\n}\n```"
   },
   {
     "task_id": "t6_debug",
@@ -25,10 +25,10 @@
   },
   {
     "task_id": "t7_logic",
-    "answer": "Ana owns the bird."
+    "answer": "Ana"
   },
   {
     "task_id": "t8_codegen",
-    "answer": "```python\ndef second_largest_unique(nums):\n    unique = set(nums)\n    if len(unique) < 2:\n        return None\n    return sorted(unique)[-2]\n```"
+    "answer": "```python\ndef second_largest_unique(nums):\n    unique = list(set(nums))\n    if len(unique) < 2:\n        return None\n    unique.sort(reverse=True)\n    return unique[1]\n```"
   }
 ]
