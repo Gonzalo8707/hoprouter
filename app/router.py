@@ -6,13 +6,18 @@ Decides, for each incoming task, whether it should be solved by:
   - a REMOTE Fireworks model (counts against token efficiency).
 
 Strategy:
-  1. Classify the task into one of the 8 known categories using cheap
-     heuristics (keywords, structure of the prompt) - this classification
-     itself must be free (no LLM call).
-  2. Based on category + a difficulty heuristic, decide the route.
-  3. Categories that are usually "easy" for a small local model
-     (sentiment, simple NER, short factual lookups) default to LOCAL.
-  4. Categories that need stronger reasoning (multi-step math, logic
+  1. If the incoming task already tells us its category (some public
+     example sets from the harness include a "category"/"type" field
+     alongside the prompt), trust it - this is free, zero-risk, and
+     removes classification error entirely for that task. See
+     `resolve_category()`.
+  2. Otherwise, classify the task into one of the 8 known categories using
+     cheap heuristics (keywords, structure of the prompt) - this
+     classification itself must be free (no LLM call).
+  3. Based on category + a difficulty heuristic, decide the route.
+  4. Categories that are usually "easy" for a small local model default to
+     LOCAL (currently none - see LOCAL_CAPABLE below).
+  5. Categories that need stronger reasoning (multi-step math, logic
      puzzles, code debugging/generation) default to REMOTE, using the
      best-suited allowed model for that category.
 """
@@ -38,8 +43,39 @@ class Route(str, Enum):
     REMOTE = "remote"
 
 
+# Maps the canonical string value of every known category to its Enum
+# member, plus a couple of very likely alias spellings, for use by
+# resolve_category() below. Built once at import time.
+_CATEGORY_BY_VALUE = {c.value: c for c in Category if c != Category.UNKNOWN}
+_CATEGORY_ALIASES = {
+    # American spelling in case the harness (or a variant of it) doesn't
+    # use the British "summarisation" spelling used in Category.SUMMARY.
+    "text_summarization": Category.SUMMARY,
+}
+
+
+def resolve_category(explicit_category) -> "Category | None":
+    """
+    If the task dict already carries a category label, normalize it and
+    return the matching Category - this is strictly more reliable than
+    guessing from the prompt text, since it comes straight from the task
+    spec instead of a regex heuristic. Returns None if there's nothing
+    usable, so the caller can fall back to classify(prompt).
+    """
+    if not explicit_category or not isinstance(explicit_category, str):
+        return None
+    normalized = re.sub(r"[\s\-]+", "_", explicit_category.strip().lower())
+    if normalized in _CATEGORY_BY_VALUE:
+        return _CATEGORY_BY_VALUE[normalized]
+    if normalized in _CATEGORY_ALIASES:
+        return _CATEGORY_ALIASES[normalized]
+    return None
+
+
 # Keyword heuristics per category. Order matters: more specific categories
-# are checked before generic ones.
+# are checked before generic ones (FACTUAL patterns are broad, e.g.
+# "what is", so FACTUAL is checked last to avoid swallowing math/NER/etc.
+# prompts that happen to also contain "what is").
 _PATTERNS = {
     Category.CODE_DEBUG: [
         r"\bbug\b", r"\bdebug", r"\bfix (the|this) code\b", r"\berror\b.*code",
@@ -78,6 +114,8 @@ _PATTERNS = {
     Category.SUMMARY: [
         r"\bsummari[sz]e\b", r"\bsummary\b", r"\bcondense\b", r"\bin one sentence\b",
         r"\btl;?dr\b", r"\bshorten\b", r"\bkey points\b", r"\bmain idea\b",
+        r"\bmain points\b", r"\bbullet points?\b", r"\brecap\b",
+        r"\bin \d+ (sentences?|bullets?|points?|words?)\b",
     ],
     Category.SENTIMENT: [
         r"\bsentiment\b", r"\bpositive or negative\b", r"\bclassify.*(review|feedback|comment)",
@@ -104,15 +142,15 @@ MODEL_PREFERENCE = {
 
 # Categories the local model is expected to handle reliably on its own,
 # without falling below the accuracy threshold.
-# Categories the local model is expected to handle reliably on its own,
-# without falling below the accuracy threshold.
 #
-# NOTE: NER was tested locally and dropped - even with prompt tuning, the
-# small local model (Qwen2.5-0.5B) inconsistently omits requested entity
-# types (e.g. missing dates/locations while still producing syntactically
-# valid JSON, which slips past the safety-net's JSON-validity check). Given
-# the accuracy gate is all-or-nothing, we accept the token cost of routing
-# NER remotely rather than risk incomplete extractions.
+# NOTE: every category was tested locally and dropped - even with prompt
+# tuning, the small local model (Qwen2.5-0.5B) is not reliable enough
+# against the real (hidden) harness variants, which turned out to be
+# harder than our own homemade eval set. Given the accuracy gate is
+# all-or-nothing, we accept the token cost of routing everything remotely
+# rather than risk an incomplete/wrong answer. The local model remains
+# wired in only as an emergency fallback (see main.py) for when Fireworks
+# itself is unreachable.
 LOCAL_CAPABLE = set()
 
 
@@ -134,6 +172,10 @@ def decide_route(prompt: str, category: Category) -> Route:
         complex multi-constraint logic) push toward REMOTE even if the
         category is normally LOCAL_CAPABLE.
       - Very short, simple prompts in a LOCAL_CAPABLE category stay LOCAL.
+
+    With LOCAL_CAPABLE currently empty, this always returns REMOTE - kept
+    as-is (rather than special-cased away) so re-enabling any category for
+    local handling later is a one-line change.
     """
     length = len(prompt.split())
 
@@ -143,9 +185,16 @@ def decide_route(prompt: str, category: Category) -> Route:
     return Route.REMOTE
 
 
-def route_task(prompt: str):
-    """Returns (category, route, preferred_model_if_remote)."""
-    category = classify(prompt)
+def route_task(prompt: str, explicit_category=None):
+    """
+    Returns (category, route, preferred_model_if_remote).
+
+    `explicit_category` is an optional category label taken straight from
+    the task (e.g. task.get("category")), if the input schema provides
+    one. When present and recognized, it is used instead of the regex
+    classifier - see resolve_category().
+    """
+    category = resolve_category(explicit_category) or classify(prompt)
     route = decide_route(prompt, category)
     model = MODEL_PREFERENCE.get(category) if route == Route.REMOTE else None
     return category, route, model

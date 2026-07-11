@@ -36,11 +36,27 @@ def write_results(path: str, results: list):
     os.replace(tmp_path, path)
 
 
+def _extract_explicit_category(task: dict):
+    """
+    Some published task schemas (including the harness's own public
+    example set) attach a category/type label alongside the prompt. If
+    present, this is strictly more reliable than guessing from the prompt
+    text via regex - so we check a few likely key names and hand it to
+    the router, which falls back to its regex classifier if none of these
+    are present or recognized.
+    """
+    for key in ("category", "task_category", "type", "task_type"):
+        value = task.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+    return None
+
+
 def solve_task(task: dict, fw_client) -> dict:
     task_id = task["task_id"]
     prompt = task["prompt"]
 
-    category, route, model = route_task(prompt)
+    category, route, model = route_task(prompt, explicit_category=_extract_explicit_category(task))
 
     try:
         if route == Route.LOCAL or fw_client is None:

@@ -1,12 +1,12 @@
 # Secrets - never commit real credentials
 .env
-
+HOPROUTER_HANDOFF.md
 # Python
 __pycache__/
 *.pyc
 *.pyo
 .Python
-HOPROUTER_HANDOFF.md
+
 # Local runtime folders (test input/output, not part of the submission)
 output/
 
