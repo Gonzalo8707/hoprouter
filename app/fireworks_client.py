@@ -29,22 +29,31 @@ _DEFAULT_SYSTEM_PROMPT = (
     "correctness or completeness for brevity."
 )
 
-# Per-category system prompt + max_tokens. Tailoring the instructions to
-# the exact expected output shape (a single label, strict JSON keys, a
-# bare numeric answer, etc.) both improves correctness on structured
-# categories and keeps completions on-target. max_tokens per category is
-# set generously enough to leave headroom for models that emit internal
-# reasoning tokens before the final answer (some of the allowed models are
-# reasoning-tuned and were observed doing this - see
-# FireworksClient._extract_content's reasoning_content fallback) without
-# being so large it risks the per-request time budget.
+# Per-category (system prompt, max_tokens, reasoning_effort).
+#
+# reasoning_effort: both allowed models are reasoning-tuned and burn
+# hidden reasoning tokens on EVERY call - those count as completion
+# tokens on the judging proxy. Passing reasoning_effort="none" was
+# verified (via the API's own usage field) to eliminate that burn
+# entirely (e.g. NER: 115 -> 41 completion tokens on minimax-m3,
+# 132 -> 42 on kimi-k2p7-code) with identical answer content. We only
+# disable reasoning on categories that don't need multi-step thinking
+# (factual/sentiment/summary/NER); math, logic, and both code categories
+# keep default reasoning (None = don't send the param) because the
+# accuracy gate is all-or-nothing and those are the categories where
+# hidden reasoning plausibly earns its cost.
+#
+# max_tokens is a CAP, not a spend - the proxy bills generated tokens,
+# so lowering caps saves nothing unless the model hits them (which is
+# truncation, the accuracy-killing failure mode). Caps are kept generous
+# on the reasoning categories for exactly that reason.
 _CATEGORY_CONFIG = {
     Category.FACTUAL: (
-        "Answer the question directly and factually in 2-4 sentences. "
-        "Cover the actual mechanism or definition being asked about, not "
-        "just a one-line label. Be accurate and complete, but do not pad "
-        "with unrelated examples or preamble.",
+        "Answer directly and factually in 2-4 sentences, covering the "
+        "actual mechanism or definition being asked about. Be accurate "
+        "and complete; no preamble, no unrelated examples.",
         380,
+        "none",
     ),
     Category.MATH: (
         "Solve the problem. Show the key calculation steps briefly, then "
@@ -53,46 +62,44 @@ _CATEGORY_CONFIG = {
         "the final numeric answer, and never show only the answer with no "
         "working.",
         350,
+        None,
     ),
     Category.SENTIMENT: (
-        "Classify the overall sentiment of the text as exactly one label: "
-        "positive, negative, neutral, or mixed. Base the label strictly on "
-        "the evidence in the text: use 'negative' only when the text has "
-        "no positive or redeeming element at all; use 'mixed' whenever "
-        "both positive and negative elements are present, even if one "
-        "dominates; use 'neutral' for factual statements with no clear "
-        "emotional charge. State the label first on its own line as "
-        "'Sentiment: <label>', then in 1-2 sentences justify it by citing "
-        "the specific words or phrases that drove the decision - if the "
-        "text has both positive and negative elements, name both.",
+        "Classify the overall sentiment as exactly one label: positive, "
+        "negative, neutral, or mixed. Use 'negative' only when the text "
+        "has no positive or redeeming element at all; use 'mixed' "
+        "whenever both positive and negative elements are present, even "
+        "if one dominates; use 'neutral' for factual statements with no "
+        "emotional charge. First line: 'Sentiment: <label>'. Then justify "
+        "in 1-2 sentences citing the specific words that drove the "
+        "decision - if both positive and negative elements exist, name "
+        "both.",
         220,
+        "none",
     ),
     Category.SUMMARY: (
-        "Summarize the given text. The request itself specifies the exact "
-        "output format to use (for example: a number of sentences, a "
-        "number of bullet points, a word limit per bullet, an overall word "
-        "limit) - follow that format EXACTLY, producing precisely that "
-        "many sentences/bullets and respecting any stated word limits, no "
-        "more and no fewer. If the request does not specify a count, "
-        "default to exactly one concise sentence. Output only the summary "
-        "itself: no preamble like 'Here is a summary', no restating the "
-        "instructions, no commentary before or after.",
+        "Summarize the given text. Follow the output format the request "
+        "specifies (sentence count, bullet count, word limits) EXACTLY - "
+        "no more, no fewer. If no count is specified, write exactly one "
+        "concise sentence. Output only the summary itself: no preamble, "
+        "no commentary.",
         280,
+        "none",
     ),
     Category.NER: (
         "Extract named entities and return ONLY a valid JSON object with "
         "exactly these keys: \"person\", \"organization\", \"location\", "
-        "\"date\" - each mapped to an array of the exact strings found in "
-        "the text (use an empty array if none are found for that key, but "
-        "never omit a key). Disambiguation rules: universities, companies, "
-        "agencies, teams, and any other named institution are "
-        "\"organization\" even when their name contains a place name (for "
-        "example 'ETH Zurich', 'Bank of America', and 'University of "
-        "Tokyo' are organizations, NOT locations). \"location\" is only "
-        "for standalone places: cities, countries, regions, addresses, "
-        "landmarks. Never list the same span under two keys. Return only "
-        "the JSON object - no extra text, no markdown code fence.",
+        "\"date\" - each an array of the exact strings found in the text "
+        "(empty array if none; never omit a key). Universities, "
+        "companies, agencies, teams and other named institutions are "
+        "\"organization\" even when their name contains a place (e.g. "
+        "'University of Tokyo' is an organization, NOT a location); "
+        "\"location\" is only standalone places (cities, countries, "
+        "regions, landmarks). Never list the same span under two keys. "
+        "Output only the JSON object - no extra text, no markdown code "
+        "fence.",
         420,
+        "none",
     ),
     Category.CODE_DEBUG: (
         "Identify the exact bug, then return the corrected function in a "
@@ -101,6 +108,7 @@ _CATEGORY_CONFIG = {
         "code. The corrected code must be fully runnable, not a diff or "
         "partial snippet.",
         480,
+        None,
     ),
     Category.LOGIC: (
         "Reason step by step internally, but keep any shown reasoning "
@@ -110,6 +118,7 @@ _CATEGORY_CONFIG = {
         "line as 'Answer: <name/value>', using the exact wording from the "
         "question.",
         420,
+        None,
     ),
     Category.CODE_GEN: (
         "Implement exactly what is requested as a single, complete, "
@@ -118,6 +127,7 @@ _CATEGORY_CONFIG = {
         "no placeholders, no omitted logic. No extra explanation unless "
         "explicitly asked for one.",
         520,
+        None,
     ),
 }
 
@@ -172,7 +182,8 @@ class FireworksClient:
         return model
 
     def _post_chat(self, model: str, prompt: str, max_tokens: int,
-                   temperature: float, system_prompt: str):
+                   temperature: float, system_prompt: str,
+                   reasoning_effort=None):
         model_id = self._resolve_model(model)
         url = f"{self.base_url.rstrip('/')}/chat/completions"
         headers = {
@@ -188,6 +199,8 @@ class FireworksClient:
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
+        if reasoning_effort is not None:
+            payload["reasoning_effort"] = reasoning_effort
 
         # Deadline-aware retry: the first attempt gets a generous timeout
         # (reasoning models can spend a while on hidden reasoning tokens
@@ -209,6 +222,17 @@ class FireworksClient:
             timeout = min(timeout, remaining)
             try:
                 resp = requests.post(url, headers=headers, json=payload, timeout=timeout)
+                # If the endpoint (or the judging proxy) rejects the
+                # reasoning_effort param with a client error, strip it and
+                # retry immediately rather than failing the task - the
+                # param is a token optimization, never worth losing an
+                # answer over.
+                if (resp.status_code == 400
+                        and "reasoning_effort" in payload):
+                    payload = {k: v for k, v in payload.items()
+                               if k != "reasoning_effort"}
+                    resp = requests.post(url, headers=headers, json=payload,
+                                         timeout=timeout)
                 resp.raise_for_status()
                 return resp.json()
             except requests.exceptions.RequestException as e:
@@ -250,20 +274,22 @@ class FireworksClient:
         return str(content).strip()
 
     def _resolve_category_config(self, category, max_tokens, temperature):
-        system_prompt, default_max_tokens = _CATEGORY_CONFIG.get(
-            category, (_DEFAULT_SYSTEM_PROMPT, 420)
+        system_prompt, default_max_tokens, reasoning_effort = _CATEGORY_CONFIG.get(
+            category, (_DEFAULT_SYSTEM_PROMPT, 420, None)
         )
         return (
             system_prompt,
             max_tokens if max_tokens is not None else default_max_tokens,
             temperature if temperature is not None else _TEMPERATURE,
+            reasoning_effort,
         )
 
     def chat_completion(self, model: str, prompt: str, category=None,
                         max_tokens: int = None, temperature: float = None) -> str:
-        system_prompt, max_tokens, temperature = self._resolve_category_config(
-            category, max_tokens, temperature)
-        data = self._post_chat(model, prompt, max_tokens, temperature, system_prompt)
+        system_prompt, max_tokens, temperature, reasoning_effort = \
+            self._resolve_category_config(category, max_tokens, temperature)
+        data = self._post_chat(model, prompt, max_tokens, temperature,
+                               system_prompt, reasoning_effort)
         return self._extract_content(data)
 
     def chat_completion_with_usage(self, model: str, prompt: str, category=None,
@@ -272,9 +298,10 @@ class FireworksClient:
         reported by the API (prompt_tokens, completion_tokens, total_tokens).
         Useful for local evaluation to track real cost per call; not needed
         by the harness itself (it measures tokens via its own proxy)."""
-        system_prompt, max_tokens, temperature = self._resolve_category_config(
-            category, max_tokens, temperature)
-        data = self._post_chat(model, prompt, max_tokens, temperature, system_prompt)
+        system_prompt, max_tokens, temperature, reasoning_effort = \
+            self._resolve_category_config(category, max_tokens, temperature)
+        data = self._post_chat(model, prompt, max_tokens, temperature,
+                               system_prompt, reasoning_effort)
         text = self._extract_content(data)
         usage = data.get("usage", {})
         return text, usage
