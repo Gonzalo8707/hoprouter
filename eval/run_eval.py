@@ -96,9 +96,9 @@ def main():
 
         try:
             if route == Route.LOCAL:
-                answer = local_generate(prompt)
+                answer, complete = local_generate(prompt, category=category)
                 total_calls_local += 1
-                if not passes_local_safety_check(category, answer):
+                if not complete or not passes_local_safety_check(category, answer):
                     escalations += 1
                     used_route = "remote (escalated)"
                     answer, usage = fw_client.chat_completion_with_usage(
@@ -115,7 +115,7 @@ def main():
             # reflects what the real submission would actually output.
             used_route += " -> local fallback (remote failed)"
             try:
-                answer = local_generate(prompt)
+                answer, _ = local_generate(prompt, category=category)
             except Exception:
                 answer = f"[EVAL ERROR] {e}"
 

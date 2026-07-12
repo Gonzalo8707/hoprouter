@@ -143,15 +143,38 @@ MODEL_PREFERENCE = {
 # Categories the local model is expected to handle reliably on its own,
 # without falling below the accuracy threshold.
 #
-# NOTE: every category was tested locally and dropped - even with prompt
-# tuning, the small local model (Qwen2.5-0.5B) is not reliable enough
-# against the real (hidden) harness variants, which turned out to be
-# harder than our own homemade eval set. Given the accuracy gate is
-# all-or-nothing, we accept the token cost of routing everything remotely
-# rather than risk an incomplete/wrong answer. The local model remains
-# wired in only as an emergency fallback (see main.py) for when Fireworks
-# itself is unreachable.
-LOCAL_CAPABLE = set()
+# History: with the old Qwen2.5-0.5B every category was tested and
+# dropped (the 0.5B caused the 73.7% gate failure - too weak for the
+# hidden harness variants). The local model is now Qwen2.5-3B-Instruct
+# (Q4_K_M via llama.cpp, see local_model.py) - the largest model that
+# fits the scoring environment's 4GB RAM / 2 vCPU budget (7B would be
+# OOM-killed; 2-3B 4-bit is what the Participant Guide recommends) -
+# so the four "simple" categories are routed local again.
+# Every local answer still passes through validators.py, and anything
+# malformed/incomplete escalates to Fireworks (see main.py) - so the
+# accuracy floor is the remote design, and local routing only removes
+# tokens from tasks where the 3B produced a well-formed answer.
+#
+# Reasoning-heavy categories (math, logic, both code categories) stay
+# remote: that's where hidden reasoning earns its cost.
+LOCAL_CAPABLE = {Category.FACTUAL, Category.SENTIMENT,
+                 Category.SUMMARY, Category.NER}
+
+# Per-category prompt-length ceilings (in words) for the local route.
+# Longer prompts go remote: they carry more content to get right (long
+# passages to summarize, more entities to extract) AND cost more
+# prompt-processing time - on the scoring host's 2 vCPUs, prompt eval
+# alone eats into the 30s budget, so ceilings are sized to leave the
+# generation phase most of the deadline. SUMMARY/NER legitimately
+# include a passage in the prompt, so their ceilings are higher than a
+# bare question's - a single global threshold would send nearly every
+# summary remote and waste the local model where it saves the most.
+_LOCAL_MAX_WORDS = {
+    Category.FACTUAL: 100,
+    Category.SENTIMENT: 150,
+    Category.SUMMARY: 300,
+    Category.NER: 180,
+}
 
 
 def classify(prompt: str) -> Category:
@@ -167,19 +190,13 @@ def decide_route(prompt: str, category: Category) -> Route:
     """
     Decide LOCAL vs REMOTE.
 
-    Extra heuristics beyond category:
-      - Very long prompts (likely summarisation of long passages, or
-        complex multi-constraint logic) push toward REMOTE even if the
-        category is normally LOCAL_CAPABLE.
-      - Very short, simple prompts in a LOCAL_CAPABLE category stay LOCAL.
-
-    With LOCAL_CAPABLE currently empty, this always returns REMOTE - kept
-    as-is (rather than special-cased away) so re-enabling any category for
-    local handling later is a one-line change.
+    A LOCAL_CAPABLE category goes local only while the prompt stays under
+    that category's length ceiling (see _LOCAL_MAX_WORDS); anything
+    longer, and every non-local-capable category, goes remote.
     """
     length = len(prompt.split())
 
-    if category in LOCAL_CAPABLE and length < 120:
+    if category in LOCAL_CAPABLE and length <= _LOCAL_MAX_WORDS[category]:
         return Route.LOCAL
 
     return Route.REMOTE

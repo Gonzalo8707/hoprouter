@@ -1,19 +1,19 @@
 [
   {
     "task_id": "t1_factual",
-    "answer": "Photosynthesis is the biological process by which green plants, algae, and some bacteria convert light energy, usually from the sun, into chemical energy stored in glucose molecules. It works by using chlorophyll in the chloroplasts to absorb sunlight, which drives a reaction that combines carbon dioxide from the air and water from the soil to produce glucose and release oxygen as a byproduct. The overall equation is: 6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂. This process occurs in two main stages: the light-dependent reactions, which capture energy and split water, and the Calvin cycle (light-independent reactions), which uses that energy to build sugar from carbon dioxide."
+    "answer": "Photosynthesis is the process by which plants convert light energy into chemical energy stored in glucose, using chlorophyll and other pigments in leaves."
   },
   {
     "task_id": "t2_math",
-    "answer": "To find the final price after a 15% discount on an $80 item:\n\n**Step 1:** Calculate the discount amount.\n- Discount = 15% × $80 = 0.15 × $80 = $12\n\n**Step 2:** Subtract the discount from the original price.\n- Final price = $80 − $12 = $68\n\nAnswer: $68"
+    "answer": "**Calculation:**\n- Discount amount: $80 × 15% = $80 × 0.15 = $12\n- Final price: $80 − $12 = $68\n\nAnswer: $68"
   },
   {
     "task_id": "t3_sentiment",
-    "answer": "**Sentiment: Negative**\n\nThe review expresses clear dissatisfaction with two key product features—battery life (\"terrible\") and overheating (\"constantly\")—using strongly negative language with no redeeming or balancing positive remarks."
+    "answer": "Sentiment: negative\nThe review contains a single negative statement about the battery life and overheating, indicating dissatisfaction with the product."
   },
   {
     "task_id": "t4_summary",
-    "answer": "The company achieved record revenue growth this quarter due to strong international demand, even as supply chain disruptions and rising input costs continued to challenge its manufacturing operations."
+    "answer": "The company experienced record revenue growth this quarter due to strong international demand, despite supply chain disruptions and increased input costs."
   },
   {
     "task_id": "t5_ner",
@@ -21,14 +21,14 @@
   },
   {
     "task_id": "t6_debug",
-    "answer": "The bug is an off-by-one error: `range(len(items) + 1)` causes an `IndexError` by accessing an index beyond the last item.\n\n```python\ndef add_items(items):\n    total = 0\n    for i in range(len(items)):\n        total += items[i]\n    return total\n```"
+    "answer": "The bug is that `range(len(items) + 1)` iterates one index past the end of the list, causing an `IndexError`.\n\n```python\ndef add_items(items):\n    total = 0\n    for item in items:\n        total += item\n    return total\n```"
   },
   {
     "task_id": "t7_logic",
-    "answer": "Let's work through the clues step by step:\n\n1. **Beto owns the dog.** ✓\n2. The remaining pets (cat and bird) must belong to Ana and Caro.\n3. **Ana does not own the cat**, so Ana must own the bird.\n4. Therefore, Caro owns the cat.\n\nAnswer: Ana owns the bird."
+    "answer": "Since Beto owns the dog, the cat and bird must belong to Ana and Caro. Ana does not own the cat, so she must own the bird (and Caro owns the cat).\n\nAnswer: Ana"
   },
   {
     "task_id": "t8_codegen",
-    "answer": "```python\ndef second_largest_unique(nums):\n    unique = set(nums)\n    if len(unique) < 2:\n        return None\n    return sorted(unique)[-2]\n```"
+    "answer": "```python\nfrom typing import List, Optional\n\ndef second_largest_unique(nums: List[int]) -> Optional[int]:\n    unique_nums = set(nums)\n    if len(unique_nums) < 2:\n        return None\n    unique_nums.remove(max(unique_nums))\n    return max(unique_nums)\n```"
   }
 ]

@@ -210,11 +210,13 @@ class FireworksClient:
         # This stays well under the harness's 30s-per-request hard limit
         # while not wasting the whole budget on two short, likely-to-fail
         # attempts.
-        start = time.time()
+        # monotonic(): wall-clock jumps (WSL2 skew) must not corrupt the
+        # retry budget - time.time() once produced a negative elapsed.
+        start = time.monotonic()
         last_exc = None
         attempt = 0
         while True:
-            elapsed = time.time() - start
+            elapsed = time.monotonic() - start
             remaining = _TOTAL_BUDGET_S - elapsed
             if remaining < _MIN_RETRY_TIMEOUT_S:
                 break

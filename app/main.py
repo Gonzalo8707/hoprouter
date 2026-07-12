@@ -57,16 +57,23 @@ def solve_task(task: dict, fw_client) -> dict:
     prompt = task["prompt"]
 
     category, route, model = route_task(prompt, explicit_category=_extract_explicit_category(task))
+    # monotonic(): time.time() jumps under WSL2 clock skew (a task once
+    # logged a negative elapsed) and must not be used for durations.
+    t0 = time.monotonic()
+    used = route.value
 
     try:
         if route == Route.LOCAL or fw_client is None:
-            answer = local_generate(prompt)
+            answer, complete = local_generate(prompt, category=category)
 
-            # Safety net: a locally-routed answer that looks broken risks
-            # the all-or-nothing accuracy gate. If it fails a basic sanity
-            # check and Fireworks is available, escalate instead of
-            # risking the whole task's score to save a few tokens.
-            if fw_client is not None and not passes_local_safety_check(category, answer):
+            # Safety net: a locally-routed answer that looks broken or was
+            # cut off (deadline/max-token) risks the all-or-nothing
+            # accuracy gate. If Fireworks is available, escalate instead
+            # of risking the whole task's score to save a few tokens.
+            if fw_client is not None and (
+                    not complete
+                    or not passes_local_safety_check(category, answer)):
+                used = "local->remote (escalated)"
                 escalation_model = MODEL_PREFERENCE.get(category, MODEL_PREFERENCE[Category.UNKNOWN])
                 answer = fw_client.chat_completion(model=escalation_model, prompt=prompt, category=category)
         else:
@@ -74,16 +81,19 @@ def solve_task(task: dict, fw_client) -> dict:
     except Exception as e:
         # Never let a single task crash the whole submission.
         # Fall back to local generation so we still emit a valid answer.
+        used += "->local fallback"
         try:
-            answer = local_generate(prompt)
+            answer, _ = local_generate(prompt, category=category)
         except Exception:
             answer = f"Error processing task: {e}"
 
+    print(f"[{task_id}] category={category.value} route={used} "
+          f"{time.monotonic() - t0:.1f}s", file=sys.stderr)
     return {"task_id": task_id, "answer": answer}
 
 
 def main():
-    start = time.time()
+    start = time.monotonic()
 
     # Load the local model into memory now, during startup, so this cost
     # counts against the container's 60s readiness budget rather than
@@ -114,7 +124,7 @@ def main():
         print(f"FATAL: could not write {OUTPUT_PATH}: {e}", file=sys.stderr)
         sys.exit(1)
 
-    elapsed = time.time() - start
+    elapsed = time.monotonic() - start
     print(f"Done. Processed {len(results)} tasks in {elapsed:.1f}s", file=sys.stderr)
     sys.exit(0)
 
